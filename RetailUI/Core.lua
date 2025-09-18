@@ -58,13 +58,6 @@ function CreateUIFrame(width, height, frameName)
 		-- Save and apply the new scale
 		SaveUIFrameScale(newScale, frameName)
 
-		-- Update the scale display
-		if frame.editorText then
-			frame.editorText:SetText(frameName .. "\nScale: " .. string.format("%.1f", newScale))
-		end
-
-		-- Debug output
-		print("Scaling " .. frameName .. " to " .. newScale)
 	end)	frame:SetFrameLevel(100)
 	frame:SetFrameStrata('FULLSCREEN')
 
@@ -187,19 +180,14 @@ function SaveUIFrameScale(input, widgetName)
     -- Update the specific frame based on widget type
     if configName == "player" then
         PlayerFrame:SetScale(scale)
-        print("Applied scale " .. scale .. " to PlayerFrame")
     elseif configName == "target" then
         TargetFrame:SetScale(scale)
-        print("Applied scale " .. scale .. " to TargetFrame")
     elseif configName == "focus" then
         FocusFrame:SetScale(scale)
-        print("Applied scale " .. scale .. " to FocusFrame")
     elseif configName == "pet" then
         PetFrame:SetScale(scale)
-        print("Applied scale " .. scale .. " to PetFrame")
     elseif configName == "targetOfTarget" then
         TargetFrameToT:SetScale(scale)
-        print("Applied scale " .. scale .. " to TargetFrameToT")
     elseif string.find(configName, "boss") then
         local bossIndex = tonumber(string.match(configName, "boss(%d+)"))
         if bossIndex then
@@ -208,7 +196,6 @@ function SaveUIFrameScale(input, widgetName)
                 local bossFrame = _G['Boss' .. i .. 'TargetFrame']
                 if bossFrame then
                     bossFrame:SetScale(scale)
-                    print("Applied scale " .. scale .. " to Boss" .. i .. "TargetFrame")
                 end
             end
 
@@ -223,7 +210,6 @@ function SaveUIFrameScale(input, widgetName)
                     local spacing = (baseHeight * scale) + padding
                     bossFrame:ClearAllPoints()
                     bossFrame:SetPoint("TOP", prevBossFrame, "BOTTOM", 0, -spacing)
-                    print("Repositioned Boss" .. i .. "TargetFrame with spacing: " .. spacing)
                 end
             end
         end
@@ -232,37 +218,29 @@ function SaveUIFrameScale(input, widgetName)
         local ActionBarModule = RUI:GetModule("ActionBar")
         if ActionBarModule and ActionBarModule.UpdateWidgets then
             ActionBarModule:UpdateWidgets()
-            print("Updated ActionBar module for " .. configName)
         end
     elseif configName == "playerCastingBar" then
         local CastingBarModule = RUI:GetModule("CastingBar")
         if CastingBarModule and CastingBarModule.UpdateWidgets then
             CastingBarModule:UpdateWidgets()
-            print("Updated CastingBar module for " .. configName)
         end
     elseif configName == "minimap" then
         local MinimapModule = RUI:GetModule("Minimap")
         if MinimapModule and MinimapModule.UpdateWidgets then
             MinimapModule:UpdateWidgets()
-            print("Updated Minimap module for " .. configName)
         end
     elseif configName == "questTracker" then
         local QuestTrackerModule = RUI:GetModule("QuestTracker")
         if QuestTrackerModule and QuestTrackerModule.UpdateWidgets then
             QuestTrackerModule:UpdateWidgets()
-            print("Updated QuestTracker module for " .. configName)
         end
     elseif configName == "buffs" then
         local BuffFrameModule = RUI:GetModule("BuffFrame")
         if BuffFrameModule and BuffFrameModule.UpdateWidgets then
             BuffFrameModule:UpdateWidgets()
-            print("Updated BuffFrame module for " .. configName)
         end
-    else
-        print("No scaling handler found for: " .. widgetName .. " (config: " .. configName .. ")")
     end
 
-    print(widgetName .. " Frame Scale saved as " .. GetUIFrameScale(widgetName)) -- print confirmation to a user
 end
 
 function GetUIFrameScale(widgetName)

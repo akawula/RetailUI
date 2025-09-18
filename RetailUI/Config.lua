@@ -27,54 +27,10 @@ RUI.optionsSlash = {
         scale = {
             name = "Scale",
             order = 1,
-            type = "group",
-            args = {
-                player = {
-                    name = "Player Frame Scale",
-                    type = 'input',
-                    order = 0,
-                    set = function(info, input)
-                        SaveUIFrameScale(input, "player")
-                    end,
-                    dialogHidden = true
-                },
-                target = {
-                    name = "Target Frame Scale",
-                    type = 'input',
-                    order = 1,
-                    set = function(info, input)
-                        SaveUIFrameScale(input, "target")
-                    end,
-                    dialogHidden = true
-                },
-                focus = {
-                    name = "Focus Frame Scale",
-                    type = 'input',
-                    order = 1,
-                    set = function(info, input)
-                        SaveUIFrameScale(input, "focus")
-                    end,
-                    dialogHidden = true
-                },
-                tot = {
-                    name = "Target of Target Frame Scale",
-                    type = 'input',
-                    order = 1,
-                    set = function(info, input)
-                        SaveUIFrameScale(input, "targetOfTarget")
-                    end,
-                    dialogHidden = true
-                },
-                pet = {
-                    name = "Pet Frame Scale",
-                    type = 'input',
-                    order = 1,
-                    set = function(info, input)
-                        SaveUIFrameScale(input, "pet")
-                    end,
-                    dialogHidden = true
-                },
-            }
+            type = "execute",
+            func = function()
+            print("Use /rui edit to scale all of the frames")
+            end,
         },
         default = {
             name = "Load Default Settings",
