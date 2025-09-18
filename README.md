@@ -20,6 +20,7 @@ UI inspired by the Retail version. This addon retextures the existing interface.
 ## Quick Start
 
 Type ``/rui edit`` for open grid layout.
+Move the frames wherever you need or scale them using mouse scroll
 
 Type ``/rui default`` for reset settings.
 
@@ -32,5 +33,5 @@ Type ``/rui default`` for reset settings.
 
 ## Contributing
 
-If you are interested in improving this addon, please pull request your changes. 
+If you are interested in improving this addon, please pull request your changes.
 When making a pull request, please adhere to the style and structure of the source code.
