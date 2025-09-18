@@ -18,7 +18,7 @@ local MicroMenuAsset = { path = addonPath .. 'Textures\\UI\\MicroMenu.blp', widt
 local CalendarAsset = { path = addonPath .. 'Textures\\Minimap\\Calendar.blp', width = 256, height = 256 }
 local LFGRoleAsset = { path = addonPath .. 'Textures\\PlayerFrame\\LFGRoleIcons.blp', width = 256, height = 256 }
 local QuestTrackerAsset = { path = addonPath .. 'Textures\\UI\\QuestTracker.BLP', width = 1024, height = 512 }
-local GuildBannerAsset = { path = addonPath .. 'Textures\\Minimap\\GuildBanner.BLP', width = 256, 256 }
+local GuildBannerAsset = { path = addonPath .. 'Textures\\Minimap\\GuildBanner.BLP', width = 256, height = 256 }
 
 local atlasTextures = {
     ['Minimap-GuildBanner-Normal'] = {

@@ -1067,7 +1067,8 @@ function Module:PLAYER_ENTERING_WORLD()
     for i = 1, 4 do
         local frame = _G["PartyMemberFrame" .. i]
         if frame and frame.healthbar then
-            self:HookScript(frame.healthbar, "OnValueChanged", function(self)
+            -- we need to catch the error here and ignore it sometimes the frame is already hooked
+            local success, error = pcall(self.HookScript, self, frame.healthbar, "OnValueChanged", function(self)
                 local unit = frame.unit
                 if UnitIsPlayer(unit) and not UnitIsUnit(unit, "player") then
                     local _, class = UnitClass(unit)
@@ -1078,7 +1079,7 @@ function Module:PLAYER_ENTERING_WORLD()
                 end
             end)
 
-            self:SecureHook(frame.healthbar, "SetStatusBarColor", function(bar, r, g, b)
+            local success, error = pcall(self.SecureHook, self, frame.healthbar, "SetStatusBarColor", function(bar, r, g, b)
                 local unit = frame.unit
                 if UnitIsPlayer(unit) and not UnitIsUnit(unit, "player") then
                     local _, class = UnitClass(unit)
