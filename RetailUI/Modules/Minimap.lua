@@ -43,6 +43,17 @@ local function ReplaceBlizzardFrame(frame)
     minimapZoneButton:ClearAllPoints()
     minimapZoneButton:SetPoint("LEFT", minimapBorderTop, "LEFT", 7, 1)
     minimapZoneButton:SetWidth(108)
+    
+    minimapZoneButton:EnableMouse(true)
+	minimapZoneButton:SetScript("OnMouseUp", function(self, button)
+    if button == "LeftButton" then
+		if WorldMapFrame:IsShown() then
+		    HideUIPanel(WorldMapFrame)
+		 else
+			ShowUIPanel(WorldMapFrame)
+		 end
+	end
+end)
 
     local minimapZoneText = MinimapZoneText
     minimapZoneText:SetAllPoints(minimapZoneButton)
@@ -209,8 +220,15 @@ local function CreateMinimapBorderFrame(width, height)
 end
 
 local function RemoveBlizzardFrames()
+    if MiniMapWorldMapButton then
+        MiniMapWorldMapButton:Hide()
+        MiniMapWorldMapButton:UnregisterAllEvents()
+        MiniMapWorldMapButton:SetScript("OnClick", nil)
+        MiniMapWorldMapButton:SetScript("OnEnter", nil)
+        MiniMapWorldMapButton:SetScript("OnLeave", nil)
+    end
+    
     local blizzFrames = {
-        MiniMapWorldMapButton,
         MiniMapTrackingIcon,
         MiniMapTrackingIconOverlay,
         MiniMapMailBorder,

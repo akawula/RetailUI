@@ -6,6 +6,10 @@
 local RUI = LibStub('AceAddon-3.0'):NewAddon('RetailUI', 'AceConsole-3.0')
 local AceConfig = LibStub("AceConfig-3.0")
 local AceDB = LibStub("AceDB-3.0")
+RetailUIDB = RetailUIDB or {}
+if RetailUIDB.bagsExpanded == nil then
+    RetailUIDB.bagsExpanded = false -- Standard: sichtbar
+end
 
 RUI.InterfaceVersion = select(4, GetBuildInfo())
 RUI.Wrath = (RUI.InterfaceVersion >= 30300)
@@ -16,7 +20,12 @@ function RUI:OnInitialize()
 	AceConfig:RegisterOptionsTable("RUI Commands", RUI.optionsSlash, "rui")
 end
 
-function RUI:OnEnable() end
+function RUI:OnEnable()
+    if GetCVar("useUiScale") == "0" then
+        SetCVar("useUiScale", 1)
+        SetCVar("uiScale", 0.75)
+    end
+end
 
 function RUI:OnDisable() end
 
@@ -99,6 +108,24 @@ function SaveUIFramePosition(frame, widgetName)
 	RUI.DB.profile.widgets[widgetName].posY = posY
 end
 
+function SaveUIFrameScale(input, widgetName)
+    local scale = tonumber(input) -- Convert input to a number
+	if not scale or scale <= 0 then -- validate
+		print("Invalid scale. Please provide a positive number.")
+		return
+	end
+
+	RUI.DB.profile.widgets[widgetName].scale = scale -- save the scale
+
+    local UnitFrameModule = RUI:GetModule("UnitFrame") -- update the UI to reflect the changes
+    UnitFrameModule:UpdateWidgets()
+    print(widgetName .. " Frame Scale saved as " .. GetUIFrameScale(widgetName)) -- print confirmation to a user
+end
+
+function GetUIFrameScale(widgetName)
+	return RUI.DB.profile.widgets[widgetName].scale
+end
+
 function CheckSettingsExists(self, widgets)
 	for _, widget in pairs(widgets) do
 		if RUI.DB.profile.widgets[widget] == nil then
@@ -108,3 +135,23 @@ function CheckSettingsExists(self, widgets)
 	end
 	self:UpdateWidgets()
 end
+
+local function MoveChatOnFirstLoad()
+    local chat = ChatFrame1
+    if not chat then return end
+
+    if chat:IsUserPlaced() then return end
+
+    chat:ClearAllPoints()
+    chat:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 32, 32)
+    chat:SetWidth(chat:GetWidth() - 40)
+    chat:SetMovable(true)
+    chat:SetUserPlaced(true)
+end
+
+local f = CreateFrame("Frame")
+f:RegisterEvent("PLAYER_ENTERING_WORLD")
+f:SetScript("OnEvent", function(self, event)
+    MoveChatOnFirstLoad()
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end)

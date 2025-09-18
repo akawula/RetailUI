@@ -646,47 +646,51 @@ local function ReplaceBlizzardBagsBarFrame(frameBar)
 
     frameBar.toggleButton = frameBar.toggleButton or CreateFrame('Button', nil, UIParent)
     local toggleButton = frameBar.toggleButton
-    toggleButton.toggle = false
     toggleButton:SetPoint("LEFT", CharacterBag0Slot, "RIGHT", frameBar.gap, 1)
     toggleButton:SetSize(9, 17)
     toggleButton:SetHitRectInsets(0, 0, 0, 0)
 
     local normalTexture = toggleButton:GetNormalTexture() or toggleButton:CreateTexture(nil, "BORDER")
     normalTexture:SetAllPoints(toggleButton)
-    SetAtlasTexture(normalTexture, 'CollapseButton-Left')
-
-    toggleButton:SetNormalTexture(normalTexture)
 
     local highlightTexture = toggleButton:GetHighlightTexture() or toggleButton:CreateTexture(nil, "HIGHLIGHT")
     highlightTexture:SetAllPoints(toggleButton)
-    SetAtlasTexture(highlightTexture, 'CollapseButton-Left')
 
+    toggleButton:SetNormalTexture(normalTexture)
     toggleButton:SetHighlightTexture(highlightTexture)
 
+    if RetailUIDB and RetailUIDB.bagsExpanded then
+        toggleButton.toggle = false  -- Leiste ist offen
+        SetAtlasTexture(normalTexture, 'CollapseButton-Right')
+        SetAtlasTexture(highlightTexture, 'CollapseButton-Right')
+        for _, button in pairs(bagSlotButtons) do button:Show() end
+    else
+        toggleButton.toggle = true  -- Leiste ist eingeklappt
+        SetAtlasTexture(normalTexture, 'CollapseButton-Left')
+        SetAtlasTexture(highlightTexture, 'CollapseButton-Left')
+        for _, button in pairs(bagSlotButtons) do button:Hide() end
+    end
+
     toggleButton:SetScript("OnClick", function(self)
+        self.toggle = not self.toggle
+        RetailUIDB.bagsExpanded = not self.toggle
+
+        local normalTexture = self:GetNormalTexture()
+        local highlightTexture = self:GetHighlightTexture()
+
         if self.toggle then
-            local normalTexture = self:GetNormalTexture()
             SetAtlasTexture(normalTexture, 'CollapseButton-Left')
-
-            local highlightTexture = toggleButton:GetHighlightTexture()
             SetAtlasTexture(highlightTexture, 'CollapseButton-Left')
-
             for _, button in pairs(bagSlotButtons) do
                 button:Hide()
             end
         else
-            local normalTexture = self:GetNormalTexture()
             SetAtlasTexture(normalTexture, 'CollapseButton-Right')
-
-            local highlightTexture = toggleButton:GetHighlightTexture()
             SetAtlasTexture(highlightTexture, 'CollapseButton-Right')
-
-            for _, button in pairs(bagSlotButtons) do
+                for _, button in pairs(bagSlotButtons) do
                 button:Show()
             end
         end
-
-        self.toggle = not self.toggle
     end)
 
     local backpackButton = MainMenuBarBackpackButton
@@ -1065,6 +1069,13 @@ function Module:OnEnable()
 
     -- Bags
     self.bagsBar = CreateActionFrameBar(nil, 5, 50, 2, false, 'BagsBar')
+
+    -- Keyring
+    self:SecureHook("ToggleBackpack", function()
+        if not IsBagOpen(-2) then
+            KeyRingButton:SetChecked(false)
+        end
+    end)
 end
 
 function Module:OnDisable()
