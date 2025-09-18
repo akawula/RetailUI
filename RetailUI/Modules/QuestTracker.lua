@@ -77,12 +77,21 @@ function Module:PLAYER_ENTERING_WORLD()
 end
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.questTracker = { anchor = "RIGHT", posX = -100, posY = -37 }
+    RUI.DB.profile.widgets.questTracker = { anchor = "RIGHT", posX = -100, posY = -37, scale = 1 }
 end
 
 function Module:UpdateWidgets()
     local widgetOptions = RUI.DB.profile.widgets.questTracker
     self.questTrackerFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    self.questTrackerFrame:SetScale(widgetOptions.scale)
+
+    -- Apply scaling to the actual Blizzard WatchFrame
+    if WatchFrame then
+        WatchFrame:SetScale(widgetOptions.scale)
+    end
 end
 
 function Module:ShowEditorTest()

@@ -496,12 +496,21 @@ function Module:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(unit)
 end
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.playerCastingBar = { anchor = "BOTTOM", posX = 0, posY = 270 }
+    RUI.DB.profile.widgets.playerCastingBar = { anchor = "BOTTOM", posX = 0, posY = 270, scale = 1 }
 end
 
 function Module:UpdateWidgets()
     local widgetOptions = RUI.DB.profile.widgets.playerCastingBar
     self.playerCastingBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    self.playerCastingBar:SetScale(widgetOptions.scale)
+
+    -- Apply scaling to the actual Blizzard CastingBarFrame
+    if CastingBarFrame then
+        CastingBarFrame:SetScale(widgetOptions.scale)
+    end
 end
 
 function Module:ShowEditorTest()

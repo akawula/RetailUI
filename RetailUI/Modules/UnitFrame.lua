@@ -1143,7 +1143,14 @@ function Module:UpdateWidgets()
 
     for index, frame in pairs(self.bossFrames) do
         if index > 1 then
-            frame:SetPoint("TOP", self.bossFrames[index - 1], "BOTTOM", 0, -2)
+            -- Calculate spacing based on boss frame scale to prevent overlapping/gaps
+            local boss1Options = RUI.DB.profile.widgets['boss1']
+            local spacing = -2
+            if boss1Options and boss1Options.scale then
+                -- Adjust spacing: larger scale = more spacing needed
+                spacing = -2 * boss1Options.scale
+            end
+            frame:SetPoint("TOP", self.bossFrames[index - 1], "BOTTOM", 0, spacing)
         else
             widgetOptions = RUI.DB.profile.widgets['boss' .. index]
             frame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)

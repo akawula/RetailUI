@@ -1151,7 +1151,8 @@ function Module:LoadDefaultSettings()
             anchor = "BOTTOM",
             posX = 0,
             posY = 60 + 4 * (index - 1) +
-                42 * (index - 1)
+                42 * (index - 1),
+            scale = 1
         }
     end
 
@@ -1159,19 +1160,21 @@ function Module:LoadDefaultSettings()
         RUI.DB.profile.widgets['actionBar' .. index] = {
             anchor = "RIGHT",
             posX = -4 * (index - 4) - 42 * (index - 4),
-            posY = -60
+            posY = -60,
+            scale = 1
         }
     end
 
     RUI.DB.profile.widgets['actionBar' .. SHAPESHIFT_ACTION_BAR_ID] = {
         anchor = "BOTTOM",
         posX = -94,
-        posY = 200
+        posY = 200,
+        scale = 1
     }
 
-    RUI.DB.profile.widgets.microMenuBar = { anchor = "BOTTOMRIGHT", posX = 50, posY = 10 }
-    RUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = 13, posY = 45 }
-    RUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 35 }
+    RUI.DB.profile.widgets.microMenuBar = { anchor = "BOTTOMRIGHT", posX = 50, posY = 10, scale = 1 }
+    RUI.DB.profile.widgets.bagsBar = { anchor = "BOTTOMRIGHT", posX = 13, posY = 45, scale = 1 }
+    RUI.DB.profile.widgets.repExpBar = { anchor = "BOTTOM", posX = 0, posY = 35, scale = 1 }
 
     -- Static
     RUI.DB.profile.widgets['actionBar' .. PET_ACTION_BAR_ID] = {
@@ -1209,16 +1212,135 @@ function Module:UpdateWidgets()
     for index, actionBar in pairs(self.actionBars) do
         local widgetOptions = RUI.DB.profile.widgets['actionBar' .. index]
         actionBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+        if widgetOptions.scale == nil then
+            widgetOptions.scale = 1
+        end
+        actionBar:SetScale(widgetOptions.scale)
+
+        -- Also apply scale to the actual Blizzard action bar frames (with nil checks)
+        if index == MAIN_ACTION_BAR_ID then
+            -- Scale individual action buttons instead of the entire MainMenuBar to avoid scaling bags/micro menu
+            for i = 1, 12 do
+                local button = _G["ActionButton" .. i]
+                if button then
+                    button:SetScale(widgetOptions.scale)
+                    -- Ensure the custom background texture is visible (textures don't have SetScale)
+                    if button.background then
+                        button.background:Show() -- Ensure it's visible
+                    end
+                end
+            end
+            -- Scale the background frame elements for ActionBar1
+            if MainMenuBarNineSlice and MainMenuBarNineSlice.SetScale then
+                MainMenuBarNineSlice:SetScale(widgetOptions.scale)
+            end
+            -- Scale other MainMenuBar background elements
+            local backgroundElements = {
+                "MainMenuBarLeftEndCap",
+                "MainMenuBarRightEndCap",
+                "MainMenuBarPageNumber",
+                "MainMenuBarTexture0",
+                "MainMenuBarTexture1",
+                "MainMenuBarTexture2",
+                "MainMenuBarTexture3"
+            }
+            for _, elementName in pairs(backgroundElements) do
+                local element = _G[elementName]
+                if element and element.SetScale then
+                    element:SetScale(widgetOptions.scale)
+                    -- Show background textures that were hidden by RemoveBlizzardFrames
+                    if elementName:match("MainMenuBarTexture") then
+                        element:SetAlpha(1)
+                    end
+                end
+            end
+        elseif index == 2 then
+            if MultiBarBottomLeft then
+                MultiBarBottomLeft:SetScale(widgetOptions.scale)
+            end
+        elseif index == 3 then
+            if MultiBarBottomRight then
+                MultiBarBottomRight:SetScale(widgetOptions.scale)
+            end
+        elseif index == 4 then
+            if MultiBarRight then
+                MultiBarRight:SetScale(widgetOptions.scale)
+            end
+        elseif index == 5 then
+            if MultiBarLeft then
+                MultiBarLeft:SetScale(widgetOptions.scale)
+            end
+        elseif index == SHAPESHIFT_ACTION_BAR_ID then
+            if ShapeshiftBarFrame then
+                ShapeshiftBarFrame:SetScale(widgetOptions.scale)
+            end
+        elseif index == PET_ACTION_BAR_ID then
+            if PetActionBarFrame then
+                PetActionBarFrame:SetScale(widgetOptions.scale)
+            end
+        end
     end
 
     local widgetOptions = RUI.DB.profile.widgets.microMenuBar
     self.microMenuBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    self.microMenuBar:SetScale(widgetOptions.scale)
+    -- Apply to actual micro menu buttons individually
+    local microButtons = {
+        "CharacterMicroButton",
+        "SpellbookMicroButton",
+        "TalentMicroButton",
+        "AchievementMicroButton",
+        "QuestLogMicroButton",
+        "SocialsMicroButton",
+        "PVPMicroButton",
+        "LFGMicroButton",
+        "MainMenuMicroButton",
+        "HelpMicroButton"
+    }
+    for _, buttonName in pairs(microButtons) do
+        local button = _G[buttonName]
+        if button and button.SetScale then
+            button:SetScale(widgetOptions.scale)
+        end
+    end
 
     widgetOptions = RUI.DB.profile.widgets.bagsBar
     self.bagsBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    self.bagsBar:SetScale(widgetOptions.scale)
+    -- Apply to actual bag buttons individually
+    local bagButtons = {
+        "MainMenuBarBackpackButton",
+        "CharacterBag0Slot",
+        "CharacterBag1Slot",
+        "CharacterBag2Slot",
+        "CharacterBag3Slot"
+    }
+    for _, buttonName in pairs(bagButtons) do
+        local button = _G[buttonName]
+        if button and button.SetScale then
+            button:SetScale(widgetOptions.scale)
+        end
+    end
 
     widgetOptions = RUI.DB.profile.widgets.repExpBar
     self.repExpBar:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    self.repExpBar:SetScale(widgetOptions.scale)
+    -- Apply to actual rep/exp bars (check if frames exist)
+    if MainMenuExpBar then
+        MainMenuExpBar:SetScale(widgetOptions.scale)
+    end
+    if ReputationWatchStatusBar then
+        ReputationWatchStatusBar:SetScale(widgetOptions.scale)
+    end
 
     self.actionBars[BONUS_ACTION_BAR_ID]:SetPoint('LEFT', self.actionBars[MAIN_ACTION_BAR_ID], 'LEFT', 0, 0)
 

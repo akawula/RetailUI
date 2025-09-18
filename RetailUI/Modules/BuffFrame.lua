@@ -132,12 +132,26 @@ function Module:UNIT_EXITED_VEHICLE(eventName, unit)
 end
 
 function Module:LoadDefaultSettings()
-    RUI.DB.profile.widgets.buffs = { anchor = "TOPRIGHT", posX = -260, posY = -20 }
+    RUI.DB.profile.widgets.buffs = { anchor = "TOPRIGHT", posX = -260, posY = -20, scale = 1 }
 end
 
 function Module:UpdateWidgets()
     local widgetOptions = RUI.DB.profile.widgets.buffs
     self.buffFrame:SetPoint(widgetOptions.anchor, widgetOptions.posX, widgetOptions.posY)
+    if widgetOptions.scale == nil then
+        widgetOptions.scale = 1
+    end
+    self.buffFrame:SetScale(widgetOptions.scale)
+
+    -- Apply scaling to the actual Blizzard BuffFrame
+    if BuffFrame then
+        BuffFrame:SetScale(widgetOptions.scale)
+    end
+
+    -- Also scale consolidated buffs frame if it exists
+    if ConsolidatedBuffs then
+        ConsolidatedBuffs:SetScale(widgetOptions.scale)
+    end
 end
 
 function Module:ShowEditorTest()

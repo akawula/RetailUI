@@ -43,7 +43,29 @@ function CreateUIFrame(width, height, frameName)
 		self:StopMovingOrSizing()
 	end)
 
-	frame:SetFrameLevel(100)
+	-- Mouse wheel scaling support
+	frame:EnableMouseWheel(true)
+	frame:SetScript("OnMouseWheel", function(self, delta)
+		if not self:IsMouseEnabled() then return end -- Only work when in editor mode
+
+		local currentScale = GetUIFrameScale(frameName) or 1
+		local scaleStep = 0.1
+		local newScale = currentScale + (delta * scaleStep)
+
+		-- Clamp scale between 0.5 and 3.0
+		newScale = math.max(0.5, math.min(3.0, newScale))
+
+		-- Save and apply the new scale
+		SaveUIFrameScale(newScale, frameName)
+
+		-- Update the scale display
+		if frame.editorText then
+			frame.editorText:SetText(frameName .. "\nScale: " .. string.format("%.1f", newScale))
+		end
+
+		-- Debug output
+		print("Scaling " .. frameName .. " to " .. newScale)
+	end)	frame:SetFrameLevel(100)
 	frame:SetFrameStrata('FULLSCREEN')
 
 	do
@@ -91,6 +113,11 @@ function HideUIFrame(frame, exclude)
 	frame.editorTexture:Show()
 	frame.editorText:Show()
 
+	-- Update editor text to show current scale
+	local frameName = frame:GetName():gsub("RUI_", "")
+	local currentScale = GetUIFrameScale(frameName) or 1
+	frame.editorText:SetText(frameName .. "\nScale: " .. string.format("%.1f", currentScale))
+
 	RUI.frames[frame] = {}
 
 	exclude = exclude or {}
@@ -115,15 +142,169 @@ function SaveUIFrameScale(input, widgetName)
 		return
 	end
 
-	RUI.DB.profile.widgets[widgetName].scale = scale -- save the scale
+	-- Convert frame name to widget name if needed
+	local configName = widgetName
+	if widgetName:match("^ActionBar%d+$") then
+		-- Convert "ActionBar1" to "actionBar1"
+		local number = widgetName:match("ActionBar(%d+)")
+		configName = "actionBar" .. number
+	elseif widgetName == "PlayerFrame" then
+		configName = "player"
+	elseif widgetName == "TargetFrame" then
+		configName = "target"
+	elseif widgetName == "FocusFrame" then
+		configName = "focus"
+	elseif widgetName == "PetFrame" then
+		configName = "pet"
+	elseif widgetName == "TargetOfTargetFrame" then
+		configName = "targetOfTarget"
+	elseif widgetName:match("^Boss%d+Frame$") then
+		local number = widgetName:match("Boss(%d+)Frame")
+		configName = "boss" .. number
+	elseif widgetName == "RepExpBar" then
+		configName = "repExpBar"
+	elseif widgetName == "MicroMenuBar" then
+		configName = "microMenuBar"
+	elseif widgetName == "BagsBar" then
+		configName = "bagsBar"
+	elseif widgetName == "PlayerCastingBar" or widgetName == "CastingBarFrame" then
+		configName = "playerCastingBar"
+	elseif widgetName == "Minimap" or widgetName == "MinimapFrame" then
+		configName = "minimap"
+	elseif widgetName == "QuestTracker" or widgetName == "QuestTrackerFrame" then
+		configName = "questTracker"
+	elseif widgetName == "BuffFrame" then
+		configName = "buffs"
+	end
 
-    local UnitFrameModule = RUI:GetModule("UnitFrame") -- update the UI to reflect the changes
-    UnitFrameModule:UpdateWidgets()
+	-- Ensure the widget entry exists before setting scale
+	if not RUI.DB.profile.widgets[configName] then
+		RUI.DB.profile.widgets[configName] = {}
+	end
+
+	RUI.DB.profile.widgets[configName].scale = scale -- save the scale
+
+    -- Update the specific frame based on widget type
+    if configName == "player" then
+        PlayerFrame:SetScale(scale)
+        print("Applied scale " .. scale .. " to PlayerFrame")
+    elseif configName == "target" then
+        TargetFrame:SetScale(scale)
+        print("Applied scale " .. scale .. " to TargetFrame")
+    elseif configName == "focus" then
+        FocusFrame:SetScale(scale)
+        print("Applied scale " .. scale .. " to FocusFrame")
+    elseif configName == "pet" then
+        PetFrame:SetScale(scale)
+        print("Applied scale " .. scale .. " to PetFrame")
+    elseif configName == "targetOfTarget" then
+        TargetFrameToT:SetScale(scale)
+        print("Applied scale " .. scale .. " to TargetFrameToT")
+    elseif string.find(configName, "boss") then
+        local bossIndex = tonumber(string.match(configName, "boss(%d+)"))
+        if bossIndex then
+            -- Scale all boss frames, not just the specific one
+            for i = 1, 4 do
+                local bossFrame = _G['Boss' .. i .. 'TargetFrame']
+                if bossFrame then
+                    bossFrame:SetScale(scale)
+                    print("Applied scale " .. scale .. " to Boss" .. i .. "TargetFrame")
+                end
+            end
+
+            -- Reposition boss frames 2, 3, 4 based on scale to maintain proper spacing
+            for i = 2, 4 do
+                local bossFrame = _G['Boss' .. i .. 'TargetFrame']
+                local prevBossFrame = _G['Boss' .. (i-1) .. 'TargetFrame']
+                if bossFrame and prevBossFrame then
+                    -- Calculate spacing based on scale: base height (30) * scale + padding
+                    local baseHeight = 30
+                    local padding = 2
+                    local spacing = (baseHeight * scale) + padding
+                    bossFrame:ClearAllPoints()
+                    bossFrame:SetPoint("TOP", prevBossFrame, "BOTTOM", 0, -spacing)
+                    print("Repositioned Boss" .. i .. "TargetFrame with spacing: " .. spacing)
+                end
+            end
+        end
+    elseif string.find(configName, "actionBar") or configName == "microMenuBar" or configName == "bagsBar" or configName == "repExpBar" then
+        -- For ActionBar elements, get the ActionBar module and update
+        local ActionBarModule = RUI:GetModule("ActionBar")
+        if ActionBarModule and ActionBarModule.UpdateWidgets then
+            ActionBarModule:UpdateWidgets()
+            print("Updated ActionBar module for " .. configName)
+        end
+    elseif configName == "playerCastingBar" then
+        local CastingBarModule = RUI:GetModule("CastingBar")
+        if CastingBarModule and CastingBarModule.UpdateWidgets then
+            CastingBarModule:UpdateWidgets()
+            print("Updated CastingBar module for " .. configName)
+        end
+    elseif configName == "minimap" then
+        local MinimapModule = RUI:GetModule("Minimap")
+        if MinimapModule and MinimapModule.UpdateWidgets then
+            MinimapModule:UpdateWidgets()
+            print("Updated Minimap module for " .. configName)
+        end
+    elseif configName == "questTracker" then
+        local QuestTrackerModule = RUI:GetModule("QuestTracker")
+        if QuestTrackerModule and QuestTrackerModule.UpdateWidgets then
+            QuestTrackerModule:UpdateWidgets()
+            print("Updated QuestTracker module for " .. configName)
+        end
+    elseif configName == "buffs" then
+        local BuffFrameModule = RUI:GetModule("BuffFrame")
+        if BuffFrameModule and BuffFrameModule.UpdateWidgets then
+            BuffFrameModule:UpdateWidgets()
+            print("Updated BuffFrame module for " .. configName)
+        end
+    else
+        print("No scaling handler found for: " .. widgetName .. " (config: " .. configName .. ")")
+    end
+
     print(widgetName .. " Frame Scale saved as " .. GetUIFrameScale(widgetName)) -- print confirmation to a user
 end
 
 function GetUIFrameScale(widgetName)
-	return RUI.DB.profile.widgets[widgetName].scale
+	-- Convert frame name to widget name if needed
+	local configName = widgetName
+	if widgetName:match("^ActionBar%d+$") then
+		-- Convert "ActionBar1" to "actionBar1"
+		local number = widgetName:match("ActionBar(%d+)")
+		configName = "actionBar" .. number
+	elseif widgetName == "PlayerFrame" then
+		configName = "player"
+	elseif widgetName == "TargetFrame" then
+		configName = "target"
+	elseif widgetName == "FocusFrame" then
+		configName = "focus"
+	elseif widgetName == "PetFrame" then
+		configName = "pet"
+	elseif widgetName == "TargetOfTargetFrame" then
+		configName = "targetOfTarget"
+	elseif widgetName:match("^Boss%d+Frame$") then
+		local number = widgetName:match("Boss(%d+)Frame")
+		configName = "boss" .. number
+	elseif widgetName == "RepExpBar" then
+		configName = "repExpBar"
+	elseif widgetName == "MicroMenuBar" then
+		configName = "microMenuBar"
+	elseif widgetName == "BagsBar" then
+		configName = "bagsBar"
+	elseif widgetName == "PlayerCastingBar" or widgetName == "CastingBarFrame" then
+		configName = "playerCastingBar"
+	elseif widgetName == "Minimap" or widgetName == "MinimapFrame" then
+		configName = "minimap"
+	elseif widgetName == "QuestTracker" or widgetName == "QuestTrackerFrame" then
+		configName = "questTracker"
+	elseif widgetName == "BuffFrame" then
+		configName = "buffs"
+	end
+
+	if not RUI.DB.profile.widgets[configName] then
+		return 1 -- Default scale if widget doesn't exist
+	end
+	return RUI.DB.profile.widgets[configName].scale or 1 -- Default to 1 if scale is nil
 end
 
 function CheckSettingsExists(self, widgets)
